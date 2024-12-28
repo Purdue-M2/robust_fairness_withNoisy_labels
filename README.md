@@ -29,84 +29,80 @@ Or you can download these datasets from their official website and process them 
 
 The csv file we provide in [`dataset`](./dataset/) are formatted as:
   
-		|- train_fake_spe.csv
-			|_ img_path,label,ismale,isasian,iswhite,isblack,intersec_label,spe_label
-				/path/to/cropped_images/imgxx.png, 1(fake), 1(male)/-1(not male), 1(asian)/-1(not asian), 1(black)/-1(not black), 1(white)/-1(not white), 0(male-asian)/1(male-white)/2(male-black)/3(male-others)/4(female-asian)/5(female-white)/6(female-black)/7(female-others), 1(Deepfakes)/2(Face2Face)/3(FaceSwap)/4(NeuralTextures)/5(FaceShifter)
-				...
-
-		|- train_real.csv
-			|_ img_path,label,ismale,isasian,iswhite,isblack,intersec_label
-				/path/to/cropped_images/imgxx.png, 0(real), 1(male)/-1(not male), 1(asian)/-1(not asian), 1(black)/-1(not black), 1(white)/-1(not white), 0(male-asian)/1(male-white)/2(male-black)/3(male-others)/4(female-asian)/5(female-white)/6(female-black)/7(female-others)
-				...
-
-		
-- Generate test.csv according to following format:
-
-		|- test.csv
-			|- img_path,label,ismale,isasian,iswhite,isblack,intersec_label
-				/path/to/cropped_images/imgxx.png, 1(fake)/0(real), 1(male)/-1(not male), 1(asian)/-1(not asian), 1(black)/-1(not black), 1(white)/-1(not white), 0(male-asian)/1(male-white)/2(male-black)/3(male-others)/4(female-asian)/5(female-white)/6(female-black)/7(female-others)
-				...
+| Column                     | Description                                                         |
+|----------------------------|---------------------------------------------------------------------|
+| Image Path                 | Path to the image file                                              |
+| Ground Truth Gender        | Gender label: 1 - Male, 0 - Female                                  |
+| Ground Truth Age           | Age label: 0 - Young, 1 - Middle-aged, 2 - Senior, 3 - Others       |
+| Ground Truth Race          | Race label: 0 - Asian, 1 - White, 2 - Black, 3 - Others             |
+| Intersection (cleaner)               |  0-(Male,Asian), 1-(Male,White), 2-(Male,Black), 3-(Male,Others), 4-(Female,Asian), 5-(Female,White), 6-(Female,Black), 7-(Female,Others)|
+| Target                     | Label indicating real (0) or fake (1) image                         |
+| Specific                   | Manipulation method in FF++: 1-Deepfakes, 2-Face2Face, 3-FaceSwap, 4-NeuralTextures, 5-FaceShifter   |
+| intersec_label (noisy)              |  0-(Male,Asian), 1-(Male,White), 2-(Male,Black), 3-(Male,Others), 4-(Female,Asian), 5-(Female,White), 6-(Female,Black), 7-(Female,Others)|
 
 ## 3. Load Pretrained Weights
-Before running the training code, make sure you load the pre-trained weights. We provide pre-trained weights under [`./training/pretrained`](./training/pretrained). You can also download *Xception* model trained on ImageNet (through this [link](http://data.lip6.fr/cadene/pretrainedmodels/xception-b5690688.pth)) or use your own pretrained *Xception*.
+Before running the training code, make sure you load the pre-trained weights. You can download *Xception* model trained on ImageNet (through this [link](http://data.lip6.fr/cadene/pretrainedmodels/xception-b5690688.pth)) and put it under [`./training/pretrained`](./training/pretrained).
 
 ## 4. Train
-To run the training code, you should first go to the [`./training/`](./training/) folder, then you can train our detector with loss flattening strategy by running [`train.py`](training/train.py), or without loss flattening strategy by running [`train_noSAM.py`](training/train_noSAM.py):
+To run the training code, you should first go to the [`./training/`](./training/) folder. You can train  **PG-FDD** and **Robust PG-FDD** proposed in our work by excuting below command:
+
+### Train **PG-FDD**
 
 ```
 cd training
 
-python train.py 
+python train_pgfdd.py
 ```
 
-You can adjust the parameters in [`train.py`](training/train.py) to specify the parameters, *e.g.,* training dataset, batchsize, learnig rate, *etc*.
+### Train **Robust PG-FDD**
+```
+cd training
+
+python train_robust_pgfdd.py
+```
+
+You can adjust the parameters in [`train_pgfdd.py`](training/train_pgfdd.py) or [`train_robust_pgfdd.py`](training/train_robust_pgfdd.py) to specify the parameters, *e.g.,* training dataset, batchsize, learnig rate, *etc*.
 
 `--lr`: learning rate, default is 0.0005. 
 
-`--gpu`: gpu ids for training.
+`--checkpoints`: folder to save model checkpoints.
 
-` --fake_datapath`: /path/to/faketrain.csv, fakeval.csv
+` --datapath`: /path/to/train_dataset_folder, default='../dataset/ff++/'.
 
-` --real_datapath`: /path/to/realtrain.csv, realval.csv
+` --test_datapath`: /path/to/test_dataset_file, default='../dataset/ff++/test_noise.csv'.
 
-`--batchsize`: batch size, default is 16.
+`--train_batchsize`: train batch size, default is 16.
 
-`--dataname`: training dataset name: ff++.
-
-`--model`: detector name: fair_df_detector.
+`--model`: detector name: 'robust_pgfdd'.
 
 ## 5. Test
 * For model testing, we provide a python file to test our model by running `python test.py`. 
 
-	`--test_path`: /path/to/test.csv 
+	`--inter_attribute`: intersectional group names divided by '-': male,asian-male,white-male,black-male,others-nonmale,asian-nonmale,white-nonmale,black-nonmale,others-young-middle-senior-ageothers
 
-	`--test_data_name`: testing dataset name: ff++, celebdf, dfd, dfdc.
+	`--checkpoints`: /path/to/saved/model_folder.
 
-	`--inter_attribute`: intersectional group names divided by '-': male,asian-male,white-male,black-male,others-nonmale,asian-nonmale,white-nonmale,black-nonmale,others 
-
-	`--single_attribute`: single attribute name divided by '-': male-nonmale-asian-white-black-others 
-
-	`--checkpoints`: /path/to/saved/model.pth 
+	`--specific_checkpoint`: /path/to/saved/model.pth. (specific checkpoint file to test)
 
 	`--savepath`: /where/to/save/predictions.npy(labels.npy)/results/ 
 
-	`--model_structure`: detector name: fair_df_detector.
+	`--model_structure`: detector name: robust_pgfdd.
 
 	`--batch_size`: testing batch size: default is 32.
 
-* After testing, for metric calculation, we provide `python fairness_metrics.py` to print all the metrics. To be noted that before run metrics.py, adjust the input to the path of your predictions(labels).npy files, which is the `--savepath` in the above setting.
+* After testing, for metric calculation, we provide `python fairness_metrics.py` to print all the metrics. It is automatically called in `test.py`.
 
 #### 📝 Note
 Change `--inter_attribute` and `--single_attribute` for different testing dataset:
 
 ```
 ### ff++, dfdc
---inter_attribute male,asian-male,white-male,black-male,others-nonmale,asian-nonmale,white-nonmale,black-nonmale,others \
---single_attribute male-nonmale-asian-white-black-others \
+--inter_attribute male,asian-male,white-male,black-male,others-nonmale,asian-nonmale,white-nonmale,black-nonmale,others-young-middle-senior-ageothers \
+
 
 ### celebdf, dfd
---inter_attribute male,white-male,black-male,others-nonmale,white-nonmale,black-nonmale,others \
---single_attribute male-nonmale-white-black-others \
+--inter_attribute male,white-male,black-male,others-nonmale,white-nonmale,black-nonmale,others-young-middle-senior-ageothers \
+
 ```
 
 ## 📦 Provided Backbones
