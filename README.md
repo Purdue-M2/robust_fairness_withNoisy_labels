@@ -76,7 +76,11 @@ You can adjust the parameters in [`train_pgfdd.py`](training/train_pgfdd.py) or 
 `--model`: detector name: 'robust_pgfdd'.
 
 ## 5. Test
-* For model testing, we provide a python file to test our model by running `python test.py`. 
+* For model testing, we provide a python file to test our model by running:
+
+```
+python test.py
+```
 
 	`--inter_attribute`: intersectional group names divided by '-': male,asian-male,white-male,black-male,others-nonmale,asian-nonmale,white-nonmale,black-nonmale,others-young-middle-senior-ageothers
 
