@@ -17,36 +17,28 @@ pip install -r requirements.txt
 
 ## 2. Dataset Preparation
 
-The annotations of FF++, Celeb-DF, DFD, DFDC can be found in [`dataset`](./dataset/) and   which be downloaded through this [link](https://purdue0-my.sharepoint.com/:f:/g/personal/lin1785_purdue_edu/EtMK0nfxMldAikDxesIo6ckBVHMME1iIV1id_ZsbM9hsqg?e=WayYoy). 
+The annotations of FF++, Celeb-DF, DFD, DFDC can be found in [`dataset`](./dataset/). The `intersec_label` annotation (gender and race combined attribute) are obtained from [paper](https://arxiv.org/pdf/2208.05845.pdf). The `Intersection` annotation are obtained from [AI-Face-FairnessBench](https://github.com/Purdue-M2/AI-Face-FairnessBench), which is a cleaner version.
 
-You can also get those re-annotated four datasets with prediction uncertainty scores through our [AI-Face-FairnessBench](https://github.com/Purdue-M2/AI-Face-FairnessBench). 
+We also shared the processed and corpped images, which can be download the datasets through this [link](https://purdue0-my.sharepoint.com/:f:/g/personal/lin1785_purdue_edu/EtMK0nfxMldAikDxesIo6ckBVHMME1iIV1id_ZsbM9hsqg?e=WayYoy).
 
 Or you can download these datasets from their official website and process them by following the below steps:
 - Download [FF++](https://github.com/ondyari/FaceForensics), [Celeb-DF](https://github.com/yuezunli/celeb-deepfakeforensics), [DFD](https://ai.googleblog.com/2019/09/contributing-data-to-deepfake-detection.html) and [DFDC](https://ai.facebook.com/datasets/dfdc/) datasets
 - Download annotations for these four datasets according to [paper](https://arxiv.org/pdf/2208.05845.pdf) and their [code](https://github.com/pterhoer/DeepFakeAnnotations), extract the demographics information of all images in each dataset. 
 - Extract, align and crop face using [DLib](https://www.jmlr.org/papers/volume10/king09a/king09a.pdf), and save them to `/path/to/cropped_images/`
 - Split cropped images in each dataset to train/val/test with a ratio of 60%/20%/20% without identity overlap.
-- Generate faketrain.csv, realtrain.csv, fakeval.csv, realval.csv according to the following format:
+
+The csv file we provide in [`dataset`](./dataset/) are formatted as:
   
-		|- faketrain.csv
+		|- train_fake_spe.csv
 			|_ img_path,label,ismale,isasian,iswhite,isblack,intersec_label,spe_label
 				/path/to/cropped_images/imgxx.png, 1(fake), 1(male)/-1(not male), 1(asian)/-1(not asian), 1(black)/-1(not black), 1(white)/-1(not white), 0(male-asian)/1(male-white)/2(male-black)/3(male-others)/4(female-asian)/5(female-white)/6(female-black)/7(female-others), 1(Deepfakes)/2(Face2Face)/3(FaceSwap)/4(NeuralTextures)/5(FaceShifter)
 				...
 
-		|- realtrain.csv
+		|- train_real.csv
 			|_ img_path,label,ismale,isasian,iswhite,isblack,intersec_label
 				/path/to/cropped_images/imgxx.png, 0(real), 1(male)/-1(not male), 1(asian)/-1(not asian), 1(black)/-1(not black), 1(white)/-1(not white), 0(male-asian)/1(male-white)/2(male-black)/3(male-others)/4(female-asian)/5(female-white)/6(female-black)/7(female-others)
 				...
 
-		|- fakeval.csv
-			|_ img_path,label,ismale,isasian,iswhite,isblack,intersec_label,spe_label
-				/path/to/cropped_images/imgxx.png, 1(fake), 1(male)/-1(not male), 1(asian)/-1(not asian), 1(black)/-1(not black), 1(white)/-1(not white), 0(male-asian)/1(male-white)/2(male-black)/3(male-others)/4(female-asian)/5(female-white)/6(female-black)/7(female-others), 1(Deepfakes)/2(Face2Face)/3(FaceSwap)/4(NeuralTextures)/5(FaceShifter)
-				...
-
-		|- realval.csv
-			|_ img_path,label,ismale,isasian,iswhite,isblack,intersec_label
-				/path/to/cropped_images/imgxx.png, 0(real), 1(male)/-1(not male), 1(asian)/-1(not asian), 1(black)/-1(not black), 1(white)/-1(not white), 0(male-asian)/1(male-white)/2(male-black)/3(male-others)/4(female-asian)/5(female-white)/6(female-black)/7(female-others)
-				...
 		
 - Generate test.csv according to following format:
 
